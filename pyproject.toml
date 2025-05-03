@@ -1,0 +1,29 @@
+[project]
+name = "zoho-expense-creator"
+version = "0.1.0"
+description = "Create expenses in Zoho Books by parsing expense images or pdf files"
+authors = [
+    {name = "Sreedharlal B Naick",email = "dev.sreedharlal.b.naick@gmail.com"}
+]
+readme = "README.md"
+[tool.poetry]
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pocketflow = "^0.0.2"
+streamlit = "^1.32.0"
+python-dotenv = "^1.1.0"
+google-genai = "^1.13.0"
+pydantic = "^2.11.4"
+
+[tool.poetry.scripts]
+web = "app.web:app"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+
