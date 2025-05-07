@@ -2,29 +2,19 @@
 
 ## Overview
 
-The Zoho Expense Creator is an AI-powered system that automates the process of creating expense entries in Zoho Books from various document formats. The system uses Gemini AI for document processing and follows a structured flow to ensure accurate and reliable expense creation.
+The Zoho Expense Creator is an AI-powered system that automates the process of creating expense entries in Zoho Books from various document formats. The system uses Gemini AI for document processing and follows an agent-based architecture where a central decision-making node orchestrates the flow of operations.
 
 ## System Architecture
 
 ```mermaid
 flowchart TD
-    A[Document Upload] --> B[Document Processing]
-    B --> C[Data Extraction]
-    C --> D[Data Validation]
-    D --> E[API Integration]
-    E --> F[Result Display]
-
-    subgraph Web UI
-        A
-        F
-    end
-
-    subgraph Processing Pipeline
-        B
-        C
-        D
-        E
-    end
+    A[Upload] --> B[Prepare]
+    B --> C[Decide]
+    C -->|get_vendor| D[GetVendor]
+    C -->|create_vendor| E[CreateVendor]
+    C -->|create_expense| F[CreateExpense]
+    D -->|decide| C
+    E -->|decide| C
 ```
 
 ## Components
@@ -37,81 +27,65 @@ flowchart TD
   - Result review and confirmation
   - Error handling and feedback
 
-### 2. Document Processing Pipeline
-- **Input**: PDF/Image documents
-- **Processing Steps**:
-  1. Document loading and preprocessing
-  2. Data extraction using Gemini AI
-  3. Data validation and formatting
-  4. API integration
+### 2. Node-based Processing
+The system uses an agent-based architecture with the following nodes:
 
-### 3. Data Models
-- **Expense Model**: Structured representation of expense data
-- **Validation Rules**: Business rules for expense validation
-- **API Models**: Models for API integration
+#### Upload Node
+- `prep`: Validates file path from shared store
+- `exec`: Uploads file using Gemini client
+- `post`: Stores uploaded file in shared store
 
-### 4. Node-based Processing
-The system uses a node-based architecture for processing:
+#### Prepare Node
+- `prep`: Gets uploaded file from shared store
+- `exec`: Prepares context and prompt for Gemini AI
+- `post`: Stores prepared contents in shared store
 
-```mermaid
-flowchart LR
-    A[Load Document] --> B[Process with Gemini]
-    B --> C[Validate Data]
-    C --> D[Create Entry]
+#### Decide Node (Central Orchestrator)
+- `prep`: Validates uploaded file and contents
+- `exec`: Uses Gemini AI to analyze document and decide next action based on tools provided
+- `post`: Routes to appropriate action based on decision
+
+#### Action Nodes
+- **GetVendor Node**:
+  - `prep`: Validates vendor name
+  - `exec`: Retrieves vendor information
+  - `post`: Returns to decide node for next action
+  - **Available Tools**:
+  - `get_vendor(vendor_name)`: Retrieves vendor ID
+
+- **CreateVendor Node**:
+  - `prep`: Validates vendor details
+  - `exec`: Creates new vendor
+  - `post`: Returns to decide node for next action
+  - **Available Tools**:
+  - `create_vendor(vendor_name, gst_number)`: Creates new vendor
+
+- **CreateExpense Node**:
+  - `prep`: Validates expense details
+  - `exec`: Creates expense entry
+  - `post`: Stores result in shared store
+  - **Available Tools**:
+  - `create_expense(date, amount, expense_type, vendor_id)`: Creates expense entry
+
+### 3. Shared Store
+The system uses a shared store for communication between nodes:
+```python
+shared = {
+    "file_path": "path/to/document",
+    "uploaded_file": "file_content",
+    "contents": [
+        # List of Content objects for Gemini AI
+    ],
+    "function_name": "current_function",
+    "function_args": {
+        # Arguments for current function
+    },
+    "results": [
+        # List of results from function calls
+    ]
+}
 ```
 
-Each node handles a specific task:
-- **LoadDocumentNode**: Document loading and preprocessing
-- **ProcessWithGeminiNode**: AI-powered data extraction
-- **ValidateDataNode**: Data validation and formatting
-- **CreateEntryNode**: API integration
 
-## Error Handling
+Each node implements appropriate error handling and validation in its `prep` and `exec` methods.
 
-The system implements comprehensive error handling:
-1. **Document Processing Errors**:
-   - Invalid file formats
-   - Corrupted documents
-
-2. **Data Extraction Errors**:
-   - Unreadable text
-   - Incomplete information
-   - Format inconsistencies
-
-3. **Validation Errors**:
-   - Invalid categories
-   - Missing required fields
-   - Amount format issues
-
-4. **API Integration Errors**:
-   - Authentication failures
-   - Rate limiting
-   - Network issues
-
-## Security Considerations
-
-1. **API Keys**:
-   - Stored in environment variables
-   - Never committed to version control
-   - Rotated regularly
-
-2. **Data Privacy**:
-   - Documents processed locally
-   - Temporary storage only
-   - Secure API communication
-
-## Future Enhancements
-
-1. **Features**:
-   - Batch processing
-   - Custom validation rules
-   - Multi-language support
-
-2. **Integration**:
-   - Additional systems
-   - Cloud storage integration
-   - Email processing
-
-3. **Performance**:
-   - Parallel processing
-   - Caching mechanisms

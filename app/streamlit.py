@@ -9,7 +9,7 @@ from flow import process_expense
 st.set_page_config(page_title="Expense Extractor", layout="wide")
 
 # Add title and description
-st.title("Expense Information Extractor")
+st.title("Expense Creator")
 st.markdown(
     """
 Upload an image or PDF of your expense receipt or invoice, and we'll extract the key information for you.
@@ -27,35 +27,45 @@ if "file_type" not in st.session_state:
     st.session_state.file_type = None
 
 
-def process_file(file_path: str, file_type: str) -> dict:
+def process_file(file_path: str) -> dict:
     """Process the file using the expense flow"""
     try:
-        result = process_expense(file_path, file_type)
+        result = process_expense(file_path)
         return result
     except Exception as e:
         st.error(f"Error processing file: {str(e)}")
         return None
 
 
-def display_results(result: dict):
+def display_results(results: dict):
     """Display the extraction results"""
-    if not result:
+    if not results:
         return
 
-    # Create columns for better layout
-    col1, col2 = st.columns(2)
+    # Show function calls and responses in table format
+    st.subheader("Function Calls")
 
-    with col1:
-        st.metric("Date", result.get("date", "N/A"))
-        st.metric("Amount", f"{result.get('amount', 'N/A')}")
+    # Create header
+    cols = st.columns([1, 2, 4])
+    cols[0].markdown("**Role**")
+    cols[1].markdown("**Function Name**")
+    cols[2].markdown("**Arguments/Result**")
 
-    with col2:
-        st.metric("Vendor", result.get("vendor", "N/A"))
-        st.metric("Expense Type", result.get("expense_type", "N/A"))
+    st.markdown("---")
 
-    # Show raw data
-    with st.expander("View Raw Data"):
-        st.json(result)
+    # Show each function call and response
+    for content in results:
+        for part in content.parts:
+            if part.function_call:
+                cols = st.columns([1, 2, 4])
+                cols[0].markdown(content.role)
+                cols[1].markdown(part.function_call.name)
+                cols[2].markdown(str(part.function_call.args))
+            if part.function_response:
+                cols = st.columns([1, 2, 4])
+                cols[0].markdown("app")
+                cols[1].markdown("response")
+                cols[2].markdown(str(part.function_response.response))
 
 
 # Create two columns for the main layout
@@ -92,10 +102,10 @@ with left_col:
                 st.session_state.temp_file_path = tmp_file.name
 
         # Add Extract button
-        if st.button("Extract Information", type="primary"):
-            with st.spinner("Extracting expense information..."):
+        if st.button("Create Expense", type="primary"):
+            with st.spinner("Extracting expense information and creating expense..."):
                 st.session_state.extraction_result = process_file(
-                    st.session_state.temp_file_path, st.session_state.file_type
+                    st.session_state.temp_file_path
                 )
 
         # Display results if available
