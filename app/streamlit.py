@@ -12,7 +12,7 @@ st.set_page_config(page_title="Expense Extractor", layout="wide")
 st.title("Expense Creator")
 st.markdown(
     """
-Upload an image or PDF of your expense receipt or invoice, and we'll extract the key information for you.
+Upload an image or PDF or your receipt or invoice, we'll create expense for you
 """
 )
 

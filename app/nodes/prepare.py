@@ -20,11 +20,6 @@ class Prepare(Node):
         - If the vendor does not exist, you need to create the vendor first and then create the expense entry. 
         - Always start with getting the vendor ID.
 
-        Available functions:
-        - create_vendor(vendor_name, gst_number): Creates a new vendor
-        - get_vendor(vendor_name): Gets vendor ID by name
-        - create_expense(date, amount, expense_type, vendor_id): Creates expense entry
-
         Based on the invoice content, decide which function to call and with what parameters.
         """
 
